@@ -29,12 +29,14 @@ jobs:
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/config/auto.conf
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 arch/arm64/kernel/asm-offsets.s 2>/dev/null || true
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 modules_prepare -j$(nproc) 2>/dev/null || true
-        # 强制写入完整版本
         echo "6.12.23-android16-5-gb2a876903b49-ab14541642-4k" > include/config/kernel.release
-        cat include/config/kernel.release
+        # 让setlocalversion在被调用时返回空（版本已经在kernel.release里了）
+        printf '#!/bin/sh\necho ""\n' > scripts/setlocalversion
+        chmod +x scripts/setlocalversion
 
     - name: Build module
       run: |
+        echo "6.12.23-android16-5-gb2a876903b49-ab14541642-4k" > kernel_gki/include/config/kernel.release
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
           -C kernel_gki \
           M=$(pwd) modules -j$(nproc) \
