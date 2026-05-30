@@ -1,7 +1,6 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
-#include <net/tcp.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("OnePlus15");
