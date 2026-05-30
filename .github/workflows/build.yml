@@ -17,11 +17,14 @@ jobs:
         git clone -b android16-6.12 https://android.googlesource.com/kernel/common.git kernel_gki
         cd kernel_gki
         git checkout b2a876903b49
+        # 修改Makefile版本号 VERSION=6 PATCHLEVEL=12 SUBLEVEL=23
+        sed -i 's/^EXTRAVERSION =.*/EXTRAVERSION = -android16-5-gb2a876903b49-ab14541642-4k/' Makefile
+        head -6 Makefile
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
         scripts/config --disable CONFIG_MODVERSIONS
         scripts/config --disable CONFIG_LOCALVERSION_AUTO
         scripts/config --set-str CONFIG_LOCALVERSION ""
-        printf '#!/bin/sh\necho "-android16-5-gb2a876903b49-ab14541642-4k"\n' > scripts/setlocalversion
+        printf '#!/bin/sh\necho ""\n' > scripts/setlocalversion
         chmod +x scripts/setlocalversion
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts_basic -j$(nproc)
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
@@ -29,14 +32,10 @@ jobs:
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/config/auto.conf
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 arch/arm64/kernel/asm-offsets.s 2>/dev/null || true
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 modules_prepare -j$(nproc) 2>/dev/null || true
-        echo "6.12.23-android16-5-gb2a876903b49-ab14541642-4k" > include/config/kernel.release
-        # 让setlocalversion在被调用时返回空（版本已经在kernel.release里了）
-        printf '#!/bin/sh\necho ""\n' > scripts/setlocalversion
-        chmod +x scripts/setlocalversion
+        cat include/config/kernel.release
 
     - name: Build module
       run: |
-        echo "6.12.23-android16-5-gb2a876903b49-ab14541642-4k" > kernel_gki/include/config/kernel.release
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
           -C kernel_gki \
           M=$(pwd) modules -j$(nproc) \
