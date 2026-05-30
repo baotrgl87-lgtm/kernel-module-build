@@ -17,8 +17,9 @@ jobs:
         git clone -b android16-6.12 https://android.googlesource.com/kernel/common.git kernel_gki
         cd kernel_gki
         git checkout b2a876903b49
-        echo "-android16-5-ab14541642-4k" > localversion
+        echo "-android16-5" > localversion
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
+        # 关闭modversions
         scripts/config --disable CONFIG_MODVERSIONS
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts_basic -j$(nproc)
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
