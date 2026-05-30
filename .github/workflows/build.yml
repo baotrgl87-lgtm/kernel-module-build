@@ -14,19 +14,21 @@ jobs:
 
     - name: Download GKI kernel exact commit
       run: |
+        git config --global user.email "build@github.com"
+        git config --global user.name "GitHub Actions"
         git clone -b android16-6.12 https://android.googlesource.com/kernel/common.git kernel_gki
         cd kernel_gki
         git checkout b2a876903b49
         echo "" > localversion
         echo "" > .scmversion
         git add -f localversion .scmversion
-        git commit -m "fix version" --allow-empty
+        git commit -m "fix version"
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
         scripts/config --disable CONFIG_MODVERSIONS
         scripts/config --disable CONFIG_LOCALVERSION_AUTO
         scripts/config --set-str CONFIG_LOCALVERSION "-android16-5-gb2a876903b49-ab14541642-4k"
         git add -f .config
-        git commit -m "fix config" --allow-empty
+        git commit -m "fix config"
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts_basic -j$(nproc)
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/generated/autoconf.h
