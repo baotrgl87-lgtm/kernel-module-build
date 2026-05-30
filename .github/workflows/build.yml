@@ -18,7 +18,8 @@ jobs:
         cd kernel_gki
         echo "-android16-5" > localversion
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
-        make ARCH=arm64 LLVM=1 LLVM_IAS=1 modules_prepare -j$(nproc)
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 prepare -j$(nproc)
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
         touch Module.symvers
 
     - name: Build module
