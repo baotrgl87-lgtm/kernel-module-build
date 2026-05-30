@@ -14,8 +14,6 @@ jobs:
 
     - name: Download GKI kernel exact commit
       run: |
-        git config --global user.email "build@github.com"
-        git config --global user.name "GitHub Actions"
         git clone -b android16-6.12 https://android.googlesource.com/kernel/common.git kernel_gki
         cd kernel_gki
         git checkout b2a876903b49
@@ -23,6 +21,12 @@ jobs:
         scripts/config --disable CONFIG_MODVERSIONS
         scripts/config --disable CONFIG_LOCALVERSION_AUTO
         scripts/config --set-str CONFIG_LOCALVERSION ""
+        # 强制覆盖setlocalversion脚本
+        cat > scripts/setlocalversion << 'SCRIPT'
+#!/bin/sh
+echo "-android16-5-gb2a876903b49-ab14541642-4k"
+SCRIPT
+        chmod +x scripts/setlocalversion
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts_basic -j$(nproc)
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/generated/autoconf.h
@@ -33,7 +37,6 @@ jobs:
     - name: Build module
       run: |
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
-          KERNELRELEASE="6.12.23-android16-5-gb2a876903b49-ab14541642-4k" \
           -C kernel_gki \
           M=$(pwd) modules -j$(nproc) \
           KBUILD_MODPOST_WARN=1
