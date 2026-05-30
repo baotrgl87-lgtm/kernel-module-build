@@ -13,9 +13,9 @@ jobs:
 
     - name: Download exact kernel source
       run: |
-        git clone --depth=1 -b android16-6.12-2025-05 https://mirrors.tuna.tsinghua.edu.cn/git/AOSP/kernel/common.git kernel_gki || \
-        git clone --depth=1 -b android16-6.12 https://mirrors.tuna.tsinghua.edu.cn/git/AOSP/kernel/common.git kernel_gki
+        git clone https://mirrors.tuna.tsinghua.edu.cn/git/AOSP/kernel/common.git kernel_gki
         cd kernel_gki
+        git checkout b2a876903b49
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_prepare -j4
         touch Module.symvers
@@ -27,7 +27,6 @@ jobs:
           -C kernel_gki \
           M=$(pwd) modules -j4 \
           KBUILD_MODPOST_WARN=1
-        ls -la *.ko
         modinfo net_extreme.ko
 
     - name: Upload artifact
