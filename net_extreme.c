@@ -9,13 +9,13 @@ MODULE_VERSION("1.0");
 
 static int __init net_extreme_init(void)
 {
-    printk(KERN_INFO "NetExtreme: 加载成功\n");
+    pr_info("NetExtreme: 加载成功\n");
     return 0;
 }
 
 static void __exit net_extreme_exit(void)
 {
-    printk(KERN_INFO "NetExtreme: 卸载\n");
+    pr_info("NetExtreme: 卸载\n");
 }
 
 module_init(net_extreme_init);
