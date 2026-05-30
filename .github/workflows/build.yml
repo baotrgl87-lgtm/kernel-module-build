@@ -17,11 +17,30 @@ jobs:
         git clone -b android16-6.12 https://android.googlesource.com/kernel/common.git kernel_gki
         cd kernel_gki
         git checkout b2a876903b49
-        head -10 Makefile
-        make ARCH=arm64 LLVM=1 LLVM_IAS=1 kernelversion
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
+        scripts/config --disable CONFIG_MODVERSIONS
+        scripts/config --disable CONFIG_LOCALVERSION_AUTO
+        scripts/config --set-str CONFIG_LOCALVERSION ""
+        printf '#!/bin/sh\necho "-android16-5-gb2a876903b49-ab14541642-4k"\n' > scripts/setlocalversion
+        chmod +x scripts/setlocalversion
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts_basic -j$(nproc)
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/generated/autoconf.h
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/config/auto.conf
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 arch/arm64/kernel/asm-offsets.s 2>/dev/null || true
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 modules_prepare -j$(nproc) 2>/dev/null || true
+        cat include/config/kernel.release
+
+    - name: Build module
+      run: |
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+          -C kernel_gki \
+          M=$(pwd) modules -j$(nproc) \
+          KBUILD_MODPOST_WARN=1
+        modinfo net_extreme.ko
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: kernel-info
-        path: "kernel_gki/Makefile"
+        name: kernel-module-arm64
+        path: "*.ko"
