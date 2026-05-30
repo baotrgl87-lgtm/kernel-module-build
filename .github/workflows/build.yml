@@ -33,6 +33,7 @@ jobs:
     - name: Build module
       run: |
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+          KERNELRELEASE="6.12.23-android16-5-gb2a876903b49-ab14541642-4k" \
           -C kernel_gki \
           M=$(pwd) modules -j$(nproc) \
           KBUILD_MODPOST_WARN=1
