@@ -17,11 +17,16 @@ jobs:
         git clone -b android16-6.12 https://android.googlesource.com/kernel/common.git kernel_gki
         cd kernel_gki
         git checkout b2a876903b49
+        # 查看当前Makefile版本号
+        head -5 Makefile
+        # 修改Makefile里的EXTRAVERSION
+        sed -i 's/^EXTRAVERSION =.*/EXTRAVERSION = -android16-5-gb2a876903b49-ab14541642-4k/' Makefile
+        head -5 Makefile
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
         scripts/config --disable CONFIG_MODVERSIONS
         scripts/config --disable CONFIG_LOCALVERSION_AUTO
         scripts/config --set-str CONFIG_LOCALVERSION ""
-        printf '#!/bin/sh\necho "-android16-5-gb2a876903b49-ab14541642-4k"\n' > scripts/setlocalversion
+        printf '#!/bin/sh\necho ""\n' > scripts/setlocalversion
         chmod +x scripts/setlocalversion
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts_basic -j$(nproc)
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
@@ -29,8 +34,6 @@ jobs:
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/config/auto.conf
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 arch/arm64/kernel/asm-offsets.s 2>/dev/null || true
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 modules_prepare -j$(nproc) 2>/dev/null || true
-        # 强制写入正确的kernel.release
-        echo "6.12.23-android16-5-gb2a876903b49-ab14541642-4k" > include/config/kernel.release
 
     - name: Build module
       run: |
