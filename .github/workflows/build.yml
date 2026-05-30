@@ -14,17 +14,19 @@ jobs:
     - name: Download Android GKI kernel source
       run: |
         git clone --depth=1 -b android16-6.12 https://mirrors.tuna.tsinghua.edu.cn/git/AOSP/kernel/common.git kernel_gki || \
-        git clone --depth=1 https://github.com/aosp-mirror/kernel_common.git kernel_gki || \
-        git clone --depth=1 -b android-6.12 https://github.com/torvalds/linux.git kernel_gki
+        git clone --depth=1 https://github.com/aosp-mirror/kernel_common.git kernel_gki
         cd kernel_gki
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_prepare -j4
+        touch Module.symvers
 
     - name: Build module
       run: |
+        cp kernel_gki/Module.symvers .
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- \
           -C kernel_gki \
-          M=$(pwd) modules -j4
+          M=$(pwd) modules -j4 \
+          KBUILD_MODPOST_WARN=1
         ls -la *.ko
 
     - name: Upload artifact
