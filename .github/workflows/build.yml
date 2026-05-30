@@ -10,15 +10,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y make bc libelf-dev libssl-dev python3 flex bison wget git
-
-    - name: Download Android Clang toolchain
-      run: |
-        mkdir -p toolchain
-        wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r536225.tar.gz -O clang.tar.gz || \
-        wget -q "https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.0/clang+llvm-19.1.0-aarch64-linux-gnu.tar.xz" -O clang.tar.gz
-        tar -xf clang.tar.gz -C toolchain/ 2>/dev/null || true
-        ls toolchain/
+        sudo apt-get install -y make bc libelf-dev libssl-dev python3 flex bison wget git clang lld llvm
 
     - name: Download GKI kernel
       run: |
