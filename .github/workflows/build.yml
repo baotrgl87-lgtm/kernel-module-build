@@ -3,14 +3,14 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     steps:
     - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y make bc libelf-dev libssl-dev python3 flex bison wget git clang lld llvm libdw-dev
+        sudo apt-get install -y make bc libelf-dev libssl-dev python3 flex bison git clang lld llvm libdw-dev
 
     - name: Download GKI kernel
       run: |
@@ -18,11 +18,13 @@ jobs:
         cd kernel_gki
         echo "-android16-5" > localversion
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
-
-    - name: Build kernel vmlinux
-      run: |
-        cd kernel_gki
-        make ARCH=arm64 LLVM=1 LLVM_IAS=1 vmlinux -j$(nproc)
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts_basic -j$(nproc)
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/generated/autoconf.h
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/config/auto.conf
+        # 生成stack protector偏移
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 arch/arm64/include/generated/asm/compiler.h 2>/dev/null || true
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 arch/arm64/kernel/asm-offsets.s 2>/dev/null || true
         touch Module.symvers
 
     - name: Build module
@@ -30,7 +32,9 @@ jobs:
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
           -C kernel_gki \
           M=$(pwd) modules -j$(nproc) \
-          KBUILD_MODPOST_WARN=1
+          KBUILD_MODPOST_WARN=1 \
+          CC=clang \
+          LD=ld.lld
         modinfo net_extreme.ko
 
     - name: Upload artifact
