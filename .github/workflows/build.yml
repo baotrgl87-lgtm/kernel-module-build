@@ -19,6 +19,7 @@ jobs:
         git checkout b2a876903b49
         # 完全匹配手机内核版本字符串
         echo "-android16-5-gb2a876903b49-ab14541642-4k" > localversion
+        echo "" > .scmversion
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
         scripts/config --disable CONFIG_MODVERSIONS
         scripts/config --disable CONFIG_LOCALVERSION_AUTO
