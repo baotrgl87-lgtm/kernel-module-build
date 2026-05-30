@@ -21,11 +21,7 @@ jobs:
         scripts/config --disable CONFIG_MODVERSIONS
         scripts/config --disable CONFIG_LOCALVERSION_AUTO
         scripts/config --set-str CONFIG_LOCALVERSION ""
-        # 强制覆盖setlocalversion脚本
-        cat > scripts/setlocalversion << 'SCRIPT'
-#!/bin/sh
-echo "-android16-5-gb2a876903b49-ab14541642-4k"
-SCRIPT
+        printf '#!/bin/sh\necho "-android16-5-gb2a876903b49-ab14541642-4k"\n' > scripts/setlocalversion
         chmod +x scripts/setlocalversion
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts_basic -j$(nproc)
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
