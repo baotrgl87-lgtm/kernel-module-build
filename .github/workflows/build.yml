@@ -12,10 +12,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y make bc libelf-dev libssl-dev python3 flex bison git clang lld llvm libdw-dev
 
-    - name: Download GKI kernel
+    - name: Download GKI kernel exact commit
       run: |
-        git clone --depth=1 -b android16-6.12 https://android.googlesource.com/kernel/common.git kernel_gki
+        git clone -b android16-6.12 https://android.googlesource.com/kernel/common.git kernel_gki
         cd kernel_gki
+        git checkout b2a876903b49
         echo "-android16-5" > localversion
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts_basic -j$(nproc)
@@ -23,18 +24,7 @@ jobs:
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/generated/autoconf.h
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/config/auto.conf
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 arch/arm64/kernel/asm-offsets.s 2>/dev/null || true
-
-    - name: Build core kernel objects
-      run: |
-        cd kernel_gki
-        make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
-          kernel/module/version.o \
-          kernel/printk/printk.o \
-          -j$(nproc) 2>/dev/null || true
-        # 生成Module.symvers
-        make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
-          modules_prepare -j$(nproc) 2>/dev/null || true
-        ls Module.symvers 2>/dev/null && wc -l Module.symvers || echo "No symvers"
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 modules_prepare -j$(nproc) 2>/dev/null || true
 
     - name: Build module
       run: |
@@ -42,7 +32,7 @@ jobs:
           -C kernel_gki \
           M=$(pwd) modules -j$(nproc) \
           KBUILD_MODPOST_WARN=1
-        ls *.ko && modinfo net_extreme.ko
+        modinfo net_extreme.ko
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
