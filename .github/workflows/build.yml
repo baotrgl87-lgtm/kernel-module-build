@@ -2,21 +2,39 @@ name: Build Kernel Module
 on: [push]
 jobs:
   build:
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
     - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc make bc libelf-dev libssl-dev python3 flex bison
-        sudo apt-get install -y linux-headers-$(uname -r)
+        sudo apt-get install -y make bc libelf-dev libssl-dev python3 flex bison wget git
+
+    - name: Download Android Clang toolchain
+      run: |
+        mkdir -p toolchain
+        wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r536225.tar.gz -O clang.tar.gz || \
+        wget -q "https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.0/clang+llvm-19.1.0-aarch64-linux-gnu.tar.xz" -O clang.tar.gz
+        tar -xf clang.tar.gz -C toolchain/ 2>/dev/null || true
+        ls toolchain/
+
+    - name: Download GKI kernel
+      run: |
+        git clone --depth=1 -b android16-6.12 https://android.googlesource.com/kernel/common.git kernel_gki
+        cd kernel_gki
+        echo "-android16-5" > localversion
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 modules_prepare -j$(nproc)
+        touch Module.symvers
 
     - name: Build module
       run: |
-        make -C /lib/modules/$(uname -r)/build M=$(pwd) modules -j$(nproc)
-        ls -la *.ko
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+          -C kernel_gki \
+          M=$(pwd) modules -j$(nproc) \
+          KBUILD_MODPOST_WARN=1
         modinfo net_extreme.ko
 
     - name: Upload artifact
