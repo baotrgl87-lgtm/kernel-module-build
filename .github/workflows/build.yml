@@ -3,7 +3,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
     - uses: actions/checkout@v4
     
@@ -18,10 +18,11 @@ jobs:
         cd kernel_gki
         echo "-android16-5" > localversion
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
-        make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts_basic -j$(nproc)
-        make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
-        make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/generated/autoconf.h
-        make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/config/auto.conf
+
+    - name: Build kernel vmlinux
+      run: |
+        cd kernel_gki
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 vmlinux -j$(nproc)
         touch Module.symvers
 
     - name: Build module
