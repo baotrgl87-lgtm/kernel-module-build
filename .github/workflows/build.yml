@@ -9,22 +9,22 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc-aarch64-linux-gnu make bc libelf-dev libssl-dev python3 flex bison
+        sudo apt-get install -y gcc-aarch64-linux-gnu make bc libelf-dev libssl-dev python3 flex bison git
 
-    - name: Download exact kernel source
+    - name: Download OnePlus kernel source
       run: |
-        git clone https://mirrors.tuna.tsinghua.edu.cn/git/AOSP/kernel/common.git kernel_gki
-        cd kernel_gki
-        git checkout b2a876903b49
+        git clone --depth=1 https://github.com/OnePlusOSS/android_kernel_oneplus_sm8750.git kernel_oplus
+        cd kernel_oplus
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- oplus_debug_defconfig 2>/dev/null || \
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_prepare -j4
         touch Module.symvers
 
     - name: Build module
       run: |
-        cp kernel_gki/Module.symvers .
+        cp kernel_oplus/Module.symvers . 2>/dev/null || true
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- \
-          -C kernel_gki \
+          -C kernel_oplus \
           M=$(pwd) modules -j4 \
           KBUILD_MODPOST_WARN=1
         modinfo net_extreme.ko
