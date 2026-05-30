@@ -22,20 +22,27 @@ jobs:
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 scripts -j$(nproc)
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/generated/autoconf.h
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 include/config/auto.conf
-        # 生成stack protector偏移
-        make ARCH=arm64 LLVM=1 LLVM_IAS=1 arch/arm64/include/generated/asm/compiler.h 2>/dev/null || true
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 arch/arm64/kernel/asm-offsets.s 2>/dev/null || true
-        touch Module.symvers
+
+    - name: Build core kernel objects
+      run: |
+        cd kernel_gki
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+          kernel/module/version.o \
+          kernel/printk/printk.o \
+          -j$(nproc) 2>/dev/null || true
+        # 生成Module.symvers
+        make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+          modules_prepare -j$(nproc) 2>/dev/null || true
+        ls Module.symvers 2>/dev/null && wc -l Module.symvers || echo "No symvers"
 
     - name: Build module
       run: |
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
           -C kernel_gki \
           M=$(pwd) modules -j$(nproc) \
-          KBUILD_MODPOST_WARN=1 \
-          CC=clang \
-          LD=ld.lld
-        modinfo net_extreme.ko
+          KBUILD_MODPOST_WARN=1
+        ls *.ko && modinfo net_extreme.ko
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
