@@ -17,9 +17,8 @@ jobs:
         git clone -b android16-6.12 https://android.googlesource.com/kernel/common.git kernel_gki
         cd kernel_gki
         git checkout b2a876903b49
-        # 修改Makefile版本号 VERSION=6 PATCHLEVEL=12 SUBLEVEL=23
         sed -i 's/^EXTRAVERSION =.*/EXTRAVERSION = -android16-5-gb2a876903b49-ab14541642-4k/' Makefile
-        head -6 Makefile
+        grep EXTRAVERSION Makefile | head -1
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig
         scripts/config --disable CONFIG_MODVERSIONS
         scripts/config --disable CONFIG_LOCALVERSION_AUTO
@@ -36,6 +35,8 @@ jobs:
 
     - name: Build module
       run: |
+        grep EXTRAVERSION kernel_gki/Makefile | head -1
+        cat kernel_gki/include/config/kernel.release
         make ARCH=arm64 LLVM=1 LLVM_IAS=1 \
           -C kernel_gki \
           M=$(pwd) modules -j$(nproc) \
