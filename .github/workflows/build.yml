@@ -38,7 +38,7 @@ jobs:
           M=$(pwd) modules -j$(nproc) \
           KBUILD_MODPOST_WARN=1
         # 找出当前vermagic然后替换
-        python3 fix_vermagic.py net_extreme.ko \
+        python3 fix_vermagic.py net_extreme.ko "6.12.23-android16-5-gb2a876903b49-ab14541642-4k SMP preempt mod_unload aarch64"
           " SMP preempt mod_unload aarch64" \
           "6.12.23-android16-5-gb2a876903b49-ab14541642-4k SMP preempt mod_unload aarch64"
         modinfo net_extreme.ko
